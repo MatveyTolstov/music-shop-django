@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from .views import CategoryList
 
 
-urlpatterns = []
+urlpatterns = [path("", CategoryList.as_view, name="check")]

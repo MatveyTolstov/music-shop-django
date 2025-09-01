@@ -1,4 +1,5 @@
 from django.shortcuts import render, HttpResponse
+from django.views.generic import ListView
 from .models import (
     Category,
     Product,
@@ -8,6 +9,11 @@ from .models import (
     Orders,
     Reviews,
 )
+
+
+class CategoryList(ListView):
+    model = Category
+    context_object_name = "category"
 
 
 def check(request):
