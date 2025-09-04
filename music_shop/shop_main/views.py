@@ -13,8 +13,14 @@ from .models import (
 
 class CategoryList(ListView):
     model = Category
-    context_object_name = "category"
+    context_object_name = "categories"
 
 
-def check(request):
-    return HttpResponse("hui")
+class ProductList(ListView):
+    model = Product
+    context_object_name = "products"
+
+
+class Manufacturer(ListView):
+    model = Manufacturer
+    context_object_name = "manufacturers"
