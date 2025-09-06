@@ -1,17 +1,17 @@
 from django.contrib import admin
 from .models import (
     Product,
-    Category,
-    Manufacturer,
+    Genre,
+    Artist,
     ProductImage,
     OrderItem,
-    Orders,
-    Reviews,
+    Order,
+    Review,
 )
 
 
 # Register your models here.
-@admin.register(ProductImage, Category, Manufacturer, OrderItem, Orders, Reviews)
+@admin.register(ProductImage, Artist, Genre, OrderItem, Order, Review)
 class ShopAdmin(admin.ModelAdmin):
     pass
 
@@ -21,10 +21,10 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = [
         "product_name",
         "price",
-        "category",
-        "manufacturer",
+        "genre",
+        "artist",
     ]
-    list_filter = ["category", "manufacturer"]
+    list_filter = ["genre", "artist"]
     search_fields = ["product_name"]
 
 
