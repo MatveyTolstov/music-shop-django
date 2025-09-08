@@ -7,41 +7,34 @@
 			<p>Введите свои учетные данные, чтобы продолжить</p>
 		</div>
 
-		<form class="login-form" id="loginForm" novalidate>
+		<form class="login-form" method="post" novalidate>
+			{% csrf_token %} {% if form.non_field_errors %}
+			<div class="error-message">
+				{% for error in form.non_field_errors %} {{ error }} {% endfor %}
+			</div>
+			{% endif %}
+
 			<div class="form-group">
 				<div class="input-wrapper">
-					<input
-						type="email"
-						id="email"
-						name="email"
-						required
-						autocomplete="email"
-					/>
-					<label for="email">Email</label>
+					{{ form.username }}
+					<label for="id_username">Email или имя пользователя</label>
 				</div>
-				<span class="error-message" id="emailError"></span>
+				{% if form.username.errors %}
+				<span class="error-message show"> {{ form.username.errors.0 }} </span>
+				{% endif %}
 			</div>
 
 			<div class="form-group">
 				<div class="input-wrapper">
-					<input
-						type="password"
-						id="password"
-						name="password"
-						required
-						autocomplete="current-password"
-					/>
-					<label for="password">Password</label>
-					<button
-						type="button"
-						class="password-toggle"
-						id="passwordToggle"
-						aria-label="Toggle password visibility"
-					>
+					{{ form.password }}
+					<label for="id_password">Пароль</label>
+					<button type="button" class="password-toggle" id="passwordToggle">
 						<span class="toggle-icon"></span>
 					</button>
 				</div>
-				<span class="error-message" id="passwordError"></span>
+				{% if form.password.errors %}
+				<span class="error-message show"> {{ form.password.errors.0 }} </span>
+				{% endif %}
 			</div>
 
 			<button type="submit" class="login-btn">
@@ -51,7 +44,9 @@
 		</form>
 
 		<div class="signup-link">
-			<p>У вас нет учетной записи? <a href="#">Создайте её</a></p>
+			<p>
+				У вас нет учетной записи? <a href="{% url 'signup' %}">Создайте её</a>
+			</p>
 		</div>
 	</div>
 </div>

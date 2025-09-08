@@ -1,7 +1,10 @@
 from django.shortcuts import render, HttpResponse
+from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView
 from django.contrib.auth.models import User
-from .forms import SignUpForm
+from .forms import SignUpForm, LoginForm
+from django.contrib.auth.views import LoginView
+from django.contrib.auth import login, authenticate
 from django.db.models import Q
 from .models import (
     Genre,
@@ -89,5 +92,23 @@ class UserDetail(ListView):
     template_name = "login.html"
 
 
-class LoginForm(CreateView):
+class CustomLoginView(LoginView):
+    form_class = LoginForm
+    template_name = "login.html"
+    
+    def get_success_url(self):
+        return reverse_lazy("main")
+
+class SignUpView(CreateView):
     form_class = SignUpForm
+    template_name = "signup.html"
+    success_url = reverse_lazy("main")
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password1')
+        user = authenticate(username=username, password=password)
+        if user:
+            login(self.request, user)
+        return response
