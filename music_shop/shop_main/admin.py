@@ -3,7 +3,6 @@ from .models import (
     Product,
     Genre,
     Artist,
-    ProductImage,
     OrderItem,
     Order,
     Review,
@@ -11,7 +10,7 @@ from .models import (
 
 
 # Register your models here.
-@admin.register(ProductImage, Artist, Genre, OrderItem, Order, Review)
+@admin.register(Artist, Genre, OrderItem, Order, Review)
 class ShopAdmin(admin.ModelAdmin):
     pass
 

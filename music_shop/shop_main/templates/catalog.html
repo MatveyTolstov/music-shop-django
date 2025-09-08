@@ -57,7 +57,7 @@
             
             <div class="sort-box">
                 <label for="sort">Сортировка</label>
-                <select name="sort" id="sort">
+                <select class="sort-select" name="sort" id="sort">
                     <option value="created_at" {% if current_sort == 'created_at' %}selected{% endif %}>По дате добавления</option>
                     <option value="-created_at" {% if current_sort == '-created_at' %}selected{% endif %}>По дате добавления (убыв.)</option>
                     <option value="price" {% if current_sort == 'price' %}selected{% endif %}>По цене (возр.)</option>
@@ -77,9 +77,6 @@
     <div class="catalog-content">
         <div class="catalog-header">
             <h1 class="catalog-title">Каталог</h1>
-            <div class="results-count">
-                Найдено товаров: {{ products|length }}
-            </div>
         </div>
         
         {% if products %}
@@ -87,8 +84,8 @@
                 {% for product in products %}
                     <div class="product-card">
                         <div class="product-image">
-                            {% if product.images.first %}
-                                <img src="{{ product.images.first.image.url }}" alt="{{ product.product_name }}">
+                            {% if product.picture %}
+                                <img src="{{ product.picture.url }}" alt="{{ product.product_name }}">
                             {% else %}
                                 <div class="vinyl-placeholder">🎵</div>
                             {% endif %}

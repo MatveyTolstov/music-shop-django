@@ -1,7 +1,6 @@
 {% extends "base.html" %} {% load static %} {% block content %}
 <link rel="stylesheet" href="{% static 'main.css' %}" />
 <link rel="stylesheet" href="{% static 'category.css' %}" />
-<link rel="stylesheet" href="{% static 'product_card.css' %}" />
 <section id="home" class="hero">
 	<div class="hero-content">
 		<h1>Магазин виниловых пластинок</h1>
@@ -9,7 +8,7 @@
 			Мы коллекционируем пластинки сами, для нас это - любимое хобби на
 			протяжении многих лет
 		</p>
-		<a href="#catalog" class="cta-button">Смотреть каталог</a>
+		<a href="{% url "catalog" %}" class="cta-button">Смотреть каталог</a>
 	</div>
 </section>
 <section id="categories" class="categories">

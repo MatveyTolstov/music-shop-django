@@ -1,11 +1,12 @@
 from django.shortcuts import render, HttpResponse
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView, CreateView
+from django.contrib.auth.models import User
+from .forms import SignUpForm
 from django.db.models import Q
 from .models import (
     Genre,
     Artist,
     Product,
-    ProductImage,
     OrderItem,
     Order,
     Review,
@@ -73,7 +74,6 @@ class ProductList(ListView):
         context["current_artist"] = self.request.GET.get("artist")
         context["current_min_price"] = self.request.GET.get("min_price")
         context["current_max_price"] = self.request.GET.get("max_price")
-        context["current_search"] = self.request.GET.get("search")
         context["current_sort"] = self.request.GET.get("sort", "created_at")
         return context
 
@@ -81,3 +81,13 @@ class ProductList(ListView):
 class ArtistList(ListView):
     model = Artist
     context_object_name = "artists"
+
+
+class UserDetail(ListView):
+    model = User
+    context_object_name = "user"
+    template_name = "login.html"
+
+
+class LoginForm(CreateView):
+    form_class = SignUpForm
