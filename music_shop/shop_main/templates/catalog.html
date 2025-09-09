@@ -83,7 +83,7 @@
             <div class="products-grid">
                 {% for product in products %}
                     <div class="product-card">
-                        <div class="product-image">
+                        <div class="product-image" onclick="window.location.href='{% url 'product_detail' product.pk %}'">
                             {% if product.picture %}
                                 <img src="{{ product.picture.url }}" alt="{{ product.product_name }}">
                             {% else %}
@@ -94,7 +94,17 @@
                         <p class="artist">{{ product.artist.artist_name }}</p>
                         <p class="genre">{{ product.genre.get_genre_name_display }}</p>
                         <p class="price">{{ product.price }} ₽</p>
-                        <button class="add-to-cart">В корзину</button>
+                        <form method="post" class="add-to-cart-form">
+            {% csrf_token %}
+            <button
+                type="submit"
+                name="add_to_cart"
+                class="add-to-cart"
+                {% if product.stock_quantity <= 0 %}disabled{% endif %}
+            >
+                Добавить в корзину
+            </button>
+        </form>
                     </div>
                 {% endfor %}
             </div>

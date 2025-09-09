@@ -6,11 +6,13 @@ from .models import (
     OrderItem,
     Order,
     Review,
+    ShippingAddress,
+    Coupon
 )
 
 
 # Register your models here.
-@admin.register(Artist, Genre, OrderItem, Order, Review)
+@admin.register(Artist, Genre, OrderItem, Order, Review, Coupon, ShippingAddress)
 class ShopAdmin(admin.ModelAdmin):
     pass
 

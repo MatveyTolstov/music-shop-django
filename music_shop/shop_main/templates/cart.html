@@ -1,0 +1,134 @@
+{% extends "base.html" %} 
+{% load static %} 
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'product_detail.css' %}" />
+<div
+    class="product-page"
+    style="
+        max-width: 1100px;
+        margin: 100px auto 40px;
+        padding: 0 16px;
+        display: block;
+    "
+>
+    <h1 class="product-title">Корзина</h1>
+    <div class="card">
+        {% if items %}
+        <table style="width: 100%; border-collapse: collapse">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding: 8px 0">Товар</th>
+                    <th style="text-align: left; padding: 8px 0">Цена</th>
+                    <th style="text-align: left; padding: 8px 0">Кол-во</th>
+                    <th style="text-align: left; padding: 8px 0">Сумма</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in items %}
+                <tr style="border-top: 1px solid #e5e7eb">
+                    <td style="padding: 12px 0">{{ i.product.product_name }}</td>
+                    <td style="padding: 12px 0">{{ i.price }} ₽</td>
+                    <td style="padding: 12px 0">
+                        <form method="post" style="display: inline-block">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{ i.id }}" />
+                            <button class="add-to-cart-btn" name="action" value="dec">
+                                -
+                            </button>
+                        </form>
+                        <span style="display: inline-block; width: 24px; text-align: center"
+                            >{{ i.quantity }}</span
+                        >
+                        <form method="post" style="display: inline-block">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{ i.id }}" />
+                            <button class="add-to-cart-btn" name="action" value="inc">
+                                +
+                            </button>
+                        </form>
+                    </td>
+                    <td style="padding: 12px 0">{{ i.subtotal }} ₽</td>
+                    <td style="padding: 12px 0">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{ i.id }}" />
+                            <button class="add-to-cart-btn" name="action" value="remove">
+                                Удалить
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="text-align: right; margin-top: 16px">
+            <p class="product-price">Итого: {{ total }} ₽</p>
+            <form
+                method="post"
+                style="display: block; text-align: left; margin-top: 12px"
+            >
+                {% csrf_token %}
+                <div class="card" style="padding: 12px; margin-bottom: 12px">
+                    <h3 style="margin: 0 0 8px 0">Адрес доставки</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+                        <div>
+                            {{ address_form.full_name.label_tag }} 
+                            {{ address_form.full_name }} 
+                            {% if address_form.full_name.errors %}
+                            <div class="muted">{{ address_form.full_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {{ address_form.phone.label_tag }} 
+                            {{ address_form.phone }} 
+                            {% if address_form.phone.errors %}
+                            <div class="muted">{{ address_form.phone.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {{ address_form.city.label_tag }} 
+                            {{ address_form.city }} 
+                            {% if address_form.city.errors %}
+                            <div class="muted">{{ address_form.city.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {{ address_form.address_line.label_tag }} 
+                            {{ address_form.address_line }} 
+                            {% if address_form.address_line.errors %}
+                            <div class="muted">{{ address_form.address_line.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {{ address_form.postal_code.label_tag }} 
+                            {{ address_form.postal_code }} 
+                            {% if address_form.postal_code.errors %}
+                            <div class="muted">{{ address_form.postal_code.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 12px; margin-bottom: 12px">
+                    <h3 style="margin: 0 0 8px 0">Промокод</h3>
+                    <div style="display: flex; gap: 8px; align-items: center">
+                        {{ coupon_form.code }} 
+                        {% if coupon_form.code.errors %}
+                        <div class="muted">{{ coupon_form.code.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <button class="add-to-cart-btn" name="action" value="checkout">
+                    Оформить заказ
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <p class="muted">Ваша корзина пуста.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}

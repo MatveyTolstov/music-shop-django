@@ -78,9 +78,12 @@
 	margin-bottom: 15px;
 }
 
-.add-to-cart {
-	width: calc(100% - 40px);
+.add-to-cart-form {
 	margin: 0 20px 20px;
+}
+
+.add-to-cart-btn {
+	width: 100%;
 	padding: 12px;
 	background-color: #000;
 	color: #fff;
@@ -91,11 +94,15 @@
 	transition: all 0.3s ease;
 	text-transform: uppercase;
 	letter-spacing: 1px;
-	margin-top: auto;
 }
 
-.add-to-cart:hover {
+.add-to-cart-btn:hover {
 	background-color: #333;
+}
+
+.add-to-cart-btn:disabled {
+	background-color: #9ca3af;
+	cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
