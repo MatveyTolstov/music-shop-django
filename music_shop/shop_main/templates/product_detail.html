@@ -1,102 +1,103 @@
-{% extends "base.html" %} {% load static %} {% block content %}
+{% extends "base.html" %} 
+{% load static %} 
+
+{% block content %}
 <link rel="stylesheet" href="{% static 'product_card.css' %}" />
 <link rel="stylesheet" href="{% static 'product_detail.css' %}" />
 
 <div class="product-page">
-	<div>
-		{% if product.picture %}
-		<img
-			src="{{ product.picture.url }}"
-			alt="{{ product.product_name }}"
-			class="product-image"
-		/>
-		{% endif %}
-	</div>
-	<div>
-		<h1 class="product-title">{{ product.product_name }}</h1>
-		<p class="product-meta">
-			Исполнитель: {{ product.artist.artist_name }} • Жанр: {{ product.genre }}
-		</p>
-		<p class="product-desc">{{ product.description }}</p>
-		<p class="product-price">Цена: {{ product.price }} ₽</p>
-		<p class="stock-status">
-			{% if product.stock_quantity|default:0 > 0 %} В наличии: {{
-			product.stock_quantity }} шт. {% else %} Нет в наличии {% endif %}
-		</p>
-		<form method="post" class="add-to-cart-form">
-			{% csrf_token %}
-			<button
-				type="submit"
-				name="add_to_cart"
-				class="add-to-cart-btn"
-				{%
-				if
-				product.stock_quantity|default:0
-				<="0"
-				%}disabled{%
-				endif
-				%}
-			>
-				Добавить в корзину
-			</button>
-		</form>
-	</div>
+    <div>
+        {% if product.picture %}
+        <img
+            src="{{ product.picture.url }}"
+            alt="{{ product.product_name }}"
+            class="product-image"
+        />
+        {% endif %}
+    </div>
+    <div>
+        <h1 class="product-title">{{ product.product_name }}</h1>
+        <p class="product-meta">
+            Исполнитель: {{ product.artist.artist_name }} • Жанр: {{ product.genre }}
+        </p>
+        <p class="product-desc">{{ product.description }}</p>
+        <p class="product-price">Цена: {{ product.price }} ₽</p>
+        <p class="stock-status">
+            {% if product.stock_quantity|default:0 > 0 %} 
+                В наличии: {{ product.stock_quantity }} шт. 
+            {% else %} 
+                Нет в наличии 
+            {% endif %}
+        </p>
+        <form method="post" class="add-to-cart-form">
+            {% csrf_token %}
+            <button
+                type="submit"
+                name="add_to_cart"
+                class="add-to-cart-btn"
+                {% if product.stock_quantity|default:0 <= 0 %}disabled{% endif %}
+            >
+                Добавить в корзину
+            </button>
+        </form>
+    </div>
 </div>
 
 <div class="product-secondary">
-	<div class="card">
-		<h2 class="card-title">Оставить комментарий</h2>
-		{% if request.user.is_authenticated %} {% if not has_review %}
-		<form method="post" novalidate>
-			{% csrf_token %}
-			<div class="field">
-				{{ form.rating.label_tag }} {{ form.rating }} {% if form.rating.errors
-				%}
-				<div class="error-message show">{{ form.rating.errors.0 }}</div>
-				{% endif %}
-			</div>
-			<div class="field">
-				{{ form.text.label_tag }} {{ form.text }} {% if form.text.errors %}
-				<div class="error-message show">{{ form.text.errors.0 }}</div>
-				{% endif %}
-			</div>
-			<button type="submit" class="login-btn">
-				<span class="btn-text">Отправить</span><span class="btn-loader"></span>
-			</button>
-		</form>
-		{% else %}
-		<p class="muted">Вы уже оставили отзыв для этого товара.</p>
-		{% endif %} {% else %}
-		<p>
-			Чтобы оставить комментарий,
-			<a href="{% url 'login' %}?next={% url 'product_detail' product.pk %}"
-				>войдите</a
-			>.
-		</p>
-		{% endif %}
-	</div>
+    <div class="card">
+        <h2 class="card-title">Оставить комментарий</h2>
+        {% if request.user.is_authenticated %} 
+            {% if not has_review %}
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="field">
+                        {{ form.rating.label_tag }} {{ form.rating }} 
+                        {% if form.rating.errors %}
+                        <div class="error-message show">{{ form.rating.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="field">
+                        {{ form.text.label_tag }} {{ form.text }} 
+                        {% if form.text.errors %}
+                        <div class="error-message show">{{ form.text.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="login-btn">
+                        <span class="btn-text">Отправить</span><span class="btn-loader"></span>
+                    </button>
+                </form>
+            {% else %}
+                <p class="muted">Вы уже оставили отзыв для этого товара.</p>
+            {% endif %} 
+        {% else %}
+            <p>
+                Чтобы оставить комментарий,
+                <a href="{% url 'login' %}?next={% url 'product_detail' product.pk %}">войдите</a>.
+            </p>
+        {% endif %}
+    </div>
 
-	<div class="card">
-		<h2 class="card-title">Комментарии</h2>
-		{% if reviews %}
-		<ul class="comments-list">
-			{% for r in reviews %}
-			<li class="comment-item">
-				<div class="comment-header">
-					<div class="comment-avatar">{{ r.user.username|first|upper }}</div>
-					<div>
-						<p class="comment-user">{{ r.user.username }}</p>
-						<p class="comment-date">{{ r.created_at|date:"d.m.Y H:i" }}</p>
-					</div>
-				</div>
-				<p class="comment-rating">Оценка: {{ r.rating }}</p>
-				<p class="comment-text">{{ r.text }}</p>
-			</li>
-			{% endfor %}
-		</ul>
-		{% else %}
-		<p class="muted">Комментариев пока нет.</p>
-		{% endif %}
-	</div>
+    <div class="card">
+        <h2 class="card-title">Комментарии</h2>
+        {% if reviews %}
+        <ul class="comments-list">
+            {% for r in reviews %}
+            <li class="comment-item">
+                <div class="comment-header">
+                    <div class="comment-avatar">{{ r.user.username|first|upper }}</div>
+                    <div>
+                        <p class="comment-user">{{ r.user.username }}</p>
+                        <p class="comment-date">{{ r.created_at|date:"d.m.Y H:i" }}</p>
+                    </div>
+                </div>
+                <p class="comment-rating">Оценка: {{ r.rating }}</p>
+                <p class="comment-text">{{ r.text }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">Комментариев пока нет.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock content %}

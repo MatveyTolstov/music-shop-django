@@ -1,3 +1,10 @@
+from django.views.generic import (
+    ListView,
+    DetailView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+)
 from django.shortcuts import render, HttpResponse, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, TemplateView, View
@@ -168,23 +175,27 @@ class AccountView(LoginRequiredMixin, TemplateView):
             for it in o.orderitem_set.all():
                 subtotal = float(it.price_at_order) * it.quantity
                 total += subtotal
-                items.append({
-                    "product": it.product,
-                    "quantity": it.quantity,
-                    "price": it.price_at_order,
-                    "subtotal": subtotal,
-                })
+                items.append(
+                    {
+                        "product": it.product,
+                        "quantity": it.quantity,
+                        "price": it.price_at_order,
+                        "subtotal": subtotal,
+                    }
+                )
             if o.coupon and o.coupon.active:
                 # Apply coupon discount to total for display in account
                 percent = o.coupon.discount_percent or 0
                 total = total * (1.0 - float(percent) / 100.0)
-            orders_data.append({
-                "id": o.id,
-                "status": o.status,
-                "date": o.date_order,
-                "items": items,
-                "total": total,
-            })
+            orders_data.append(
+                {
+                    "id": o.id,
+                    "status": o.status,
+                    "date": o.date_order,
+                    "items": items,
+                    "total": total,
+                }
+            )
         context["orders"] = orders_data
         return context
 
@@ -201,10 +212,16 @@ class ProductDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["reviews"] = Review.objects.filter(product=self.object).select_related("user").order_by("-created_at")
+        context["reviews"] = (
+            Review.objects.filter(product=self.object)
+            .select_related("user")
+            .order_by("-created_at")
+        )
         context["form"] = ReviewForm()
         if self.request.user.is_authenticated:
-            context["has_review"] = Review.objects.filter(user=self.request.user, product=self.object).exists()
+            context["has_review"] = Review.objects.filter(
+                user=self.request.user, product=self.object
+            ).exists()
         else:
             context["has_review"] = False
         return context
@@ -214,7 +231,6 @@ class ProductDetailView(LoginRequiredMixin, DetailView):
         if "add_to_cart" in request.POST:
             if self.object.stock_quantity <= 0:
                 return redirect("product_detail", pk=self.object.pk)
-            # cart in cookies
             try:
                 cart = json.loads(request.COOKIES.get("cart", "{}"))
             except json.JSONDecodeError:
@@ -248,7 +264,6 @@ class CartView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Read cart from cookies
         try:
             cart = json.loads(self.request.COOKIES.get("cart", "{}"))
         except json.JSONDecodeError:
@@ -265,21 +280,26 @@ class CartView(LoginRequiredMixin, TemplateView):
             price = float(product.price)
             subtotal = price * qty
             total += subtotal
-            items.append({
-                "id": pid_int,
-                "product": product,
-                "quantity": qty,
-                "price": price,
-                "subtotal": subtotal,
-            })
+            items.append(
+                {
+                    "id": pid_int,
+                    "product": product,
+                    "quantity": qty,
+                    "price": price,
+                    "subtotal": subtotal,
+                }
+            )
         context["items"] = items
         context["total"] = total
-        # Forms for checkout
-        # Pre-fill address from the latest user's address if exists
         initial_address = None
         if self.request.user.is_authenticated:
             from .models import ShippingAddress
-            last_addr = ShippingAddress.objects.filter(user=self.request.user).order_by("-created_at").first()
+
+            last_addr = (
+                ShippingAddress.objects.filter(user=self.request.user)
+                .order_by("-created_at")
+                .first()
+            )
             if last_addr:
                 initial_address = {
                     "full_name": last_addr.full_name,
@@ -329,10 +349,19 @@ class CartView(LoginRequiredMixin, TemplateView):
                 code = coupon_form.cleaned_data.get("code", "").strip()
                 if code:
                     from .models import Coupon
+
                     try:
-                        coupon_candidate = Coupon.objects.get(code__iexact=code, active=True)
+                        coupon_candidate = Coupon.objects.get(
+                            code__iexact=code, active=True
+                        )
                         now = timezone.now()
-                        if (coupon_candidate.valid_from and coupon_candidate.valid_from > now) or (coupon_candidate.valid_to and coupon_candidate.valid_to < now):
+                        if (
+                            coupon_candidate.valid_from
+                            and coupon_candidate.valid_from > now
+                        ) or (
+                            coupon_candidate.valid_to
+                            and coupon_candidate.valid_to < now
+                        ):
                             coupon_obj = None
                         else:
                             coupon_obj = coupon_candidate
@@ -364,7 +393,12 @@ class CartView(LoginRequiredMixin, TemplateView):
                     qty = product.stock_quantity
                 if qty <= 0:
                     continue
-                OrderItem.objects.create(order=order, product=product, quantity=qty, price_at_order=product.price)
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=qty,
+                    price_at_order=product.price,
+                )
                 product.stock_quantity -= qty
                 product.save()
             order.shipping_address = shipping_address
@@ -402,7 +436,46 @@ class AdminOverviewView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             raise Http404()
         context["model_name"] = model.__name__
         context["records"] = model.objects.all()[:100]
-        context["admin_add_url"] = reverse_lazy("admin:%s_%s_add" % (model._meta.app_label, model._meta.model_name))
-        context["admin_changelist_url"] = reverse_lazy("admin:%s_%s_changelist" % (model._meta.app_label, model._meta.model_name))
-        context["admin_change_url_name"] = "admin:%s_%s_change" % (model._meta.app_label, model._meta.model_name)
+        context["admin_add_url"] = reverse_lazy(
+            "admin:%s_%s_add" % (model._meta.app_label, model._meta.model_name)
+        )
+        context["admin_changelist_url"] = reverse_lazy(
+            "admin:%s_%s_changelist" % (model._meta.app_label, model._meta.model_name)
+        )
+        context["admin_change_url_name"] = "admin:%s_%s_change" % (
+            model._meta.app_label,
+            model._meta.model_name,
+        )
         return context
+
+
+class GenreListView(ListView):
+    model = Genre
+    template_name = "product_detail.html"
+    context_object_name = "genres"
+
+
+class GenreDetailView(DetailView):
+    model = Genre
+    template_name = "product_detail.html"
+    context_object_name = "genre"
+
+
+class GenreCreateView(LoginRequiredMixin, CreateView):
+    model = Genre
+    template_name = "genre_form.html"
+    fields = ["genre_name", "description"]
+    success_url = reverse_lazy("genre-list")
+
+
+class GenreUpdateView(LoginRequiredMixin, UpdateView):
+    model = Genre
+    template_name = "genre_form.html"
+    fields = ["genre_name", "description"]
+    success_url = reverse_lazy("genre-list")
+
+
+class GenreDeleteView(LoginRequiredMixin, DeleteView):
+    model = Genre
+    template_name = "genre_confirm_delete.html"
+    success_url = reverse_lazy("genre-list")

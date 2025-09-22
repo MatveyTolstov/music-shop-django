@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+
 def max_len_choices(choices):
     return max(len(i) for i in choices)
 
@@ -42,7 +43,6 @@ class Product(models.Model):
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    score = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(5)])
 
     class Meta:
         unique_together = ("product_name", "artist")
