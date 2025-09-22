@@ -17,7 +17,6 @@
 			<div class="form-group {% if form.username.errors %}error{% endif %}">
 				<div class="input-wrapper">
 					{{ form.username }}
-					<label for="id_username">Имя пользователя</label>
 				</div>
 				{% if form.username.errors %}
 				<span class="error-message show"> {{ form.username.errors.0 }} </span>
@@ -37,7 +36,6 @@
 			<div class="form-group {% if form.password1.errors %}error{% endif %}">
 				<div class="input-wrapper">
 					{{ form.password1 }}
-					<label for="id_password1">Пароль</label>
 					<button type="button" class="password-toggle" id="passwordToggle1">
 						<span class="toggle-icon"></span>
 					</button>
@@ -50,7 +48,6 @@
 			<div class="form-group {% if form.password2.errors %}error{% endif %}">
 				<div class="input-wrapper">
 					{{ form.password2 }}
-					<label for="id_password2">Подтвердите пароль</label>
 					<button type="button" class="password-toggle" id="passwordToggle2">
 						<span class="toggle-icon"></span>
 					</button>

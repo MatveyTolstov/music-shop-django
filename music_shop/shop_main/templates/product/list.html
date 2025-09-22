@@ -1,0 +1,55 @@
+{% extends "base.html" %} {% block content %}
+<div
+	class="product-page"
+	style="max-width: 1000px; margin: 100px auto 40px; padding: 0 16px"
+>
+	<h1 class="product-title">Товары</h1>
+	<div class="card" style="padding: 16px">
+		<div style="margin-bottom: 12px">
+			<a class="add-to-cart-btn" href="{% url 'product-create' %}"
+				>Добавить товар</a
+			>
+		</div>
+		{% if records %}
+		<table style="width: 100%; border-collapse: collapse">
+			<thead>
+				<tr>
+					<th style="text-align: left; padding: 8px 0">Название</th>
+					<th style="text-align: left; padding: 8px 0">Исполнитель</th>
+					<th style="text-align: left; padding: 8px 0">Жанр</th>
+					<th style="text-align: left; padding: 8px 0">Цена</th>
+					<th style="text-align: left; padding: 8px 0">Остаток</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for p in records %}
+				<tr style="border-top: 1px solid #e5e7eb">
+					<td style="padding: 12px 0">{{ p.product_name }}</td>
+					<td style="padding: 12px 0">{{ p.artist.artist_name }}</td>
+					<td style="padding: 12px 0">{{ p.genre.get_genre_name_display }}</td>
+					<td style="padding: 12px 0">{{ p.price }} ₽</td>
+					<td style="padding: 12px 0">{{ p.stock_quantity }}</td>
+					<td style="padding: 12px 0; text-align: right">
+						<a
+							class="add-to-cart-btn"
+							href="{% url 'product-detail-crud' p.pk %}"
+							>Открыть</a
+						>
+						<a class="add-to-cart-btn" href="{% url 'product-update' p.pk %}"
+							>Править</a
+						>
+						<a class="add-to-cart-btn" href="{% url 'product-delete' p.pk %}"
+							>Удалить</a
+						>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		<p class="muted">Пока нет товаров.</p>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %} {% block content %}
+<div
+	class="product-page"
+	style="max-width: 900px; margin: 100px auto 40px; padding: 0 16px"
+>
+	<h1 class="product-title">Жанры</h1>
+	<div class="card" style="padding: 16px">
+		<div style="margin-bottom: 12px">
+			<a class="add-to-cart-btn" href="{% url 'genre-create' %}"
+				>Добавить жанр</a
+			>
+		</div>
+		{% if records %}
+		<table style="width: 100%; border-collapse: collapse">
+			<thead>
+				<tr>
+					<th style="text-align: left; padding: 8px 0">Название</th>
+					<th style="text-align: left; padding: 8px 0">Описание</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for g in records %}
+				<tr style="border-top: 1px solid #e5e7eb">
+					<td style="padding: 12px 0">{{ g.get_genre_name_display }}</td>
+					<td style="padding: 12px 0">{{ g.description|truncatewords:15 }}</td>
+					<td style="padding: 12px 0; text-align: right">
+						<a class="add-to-cart-btn" href="{% url 'genre-detail' g.pk %}"
+							>Открыть</a
+						>
+						<a class="add-to-cart-btn" href="{% url 'genre-update' g.pk %}"
+							>Править</a
+						>
+						<a class="add-to-cart-btn" href="{% url 'genre-delete' g.pk %}"
+							>Удалить</a
+						>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		<p class="muted">Пока нет жанров.</p>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}

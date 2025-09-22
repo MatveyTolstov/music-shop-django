@@ -1,0 +1,47 @@
+{% extends "base.html" %} {% block content %}
+<div
+	class="product-page"
+	style="max-width: 900px; margin: 100px auto 40px; padding: 0 16px"
+>
+	<h1 class="product-title">Исполнители</h1>
+	<div class="card" style="padding: 16px">
+		<div style="margin-bottom: 12px">
+			<a class="add-to-cart-btn" href="{% url 'artist-create' %}"
+				>Добавить исполнителя</a
+			>
+		</div>
+		{% if records %}
+		<table style="width: 100%; border-collapse: collapse">
+			<thead>
+				<tr>
+					<th style="text-align: left; padding: 8px 0">Имя</th>
+					<th style="text-align: left; padding: 8px 0">Страна</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for a in records %}
+				<tr style="border-top: 1px solid #e5e7eb">
+					<td style="padding: 12px 0">{{ a.artist_name }}</td>
+					<td style="padding: 12px 0">{{ a.country|default:"—" }}</td>
+					<td style="padding: 12px 0; text-align: right">
+						<a class="add-to-cart-btn" href="{% url 'artist-detail' a.pk %}"
+							>Открыть</a
+						>
+						<a class="add-to-cart-btn" href="{% url 'artist-update' a.pk %}"
+							>Править</a
+						>
+						<a class="add-to-cart-btn" href="{% url 'artist-delete' a.pk %}"
+							>Удалить</a
+						>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		<p class="muted">Пока нет исполнителей.</p>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}

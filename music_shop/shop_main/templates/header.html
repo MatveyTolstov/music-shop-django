@@ -7,5 +7,8 @@
 		<li><a href="{% url 'catalog' %}">Каталог</a></li>
 		<li><a href="{% url 'account' %}">Кабинет</a></li>
 		<li><a href="{% url 'cart' %}">Корзина</a></li>
+		{% if user.is_staff or user.is_superuser %}
+			<li><a href="{% url 'db-overview' %}">Управление базой данных</a></li>
+		{% endif %}
 	</ul>
 </nav>

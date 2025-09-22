@@ -65,89 +65,23 @@ class LoginForm(AuthenticationForm):
     )
 
 
-class ReviewForm(forms.ModelForm):
-    rating = forms.FloatField(
-        min_value=0,
-        max_value=5,
-        widget=forms.NumberInput(
-            attrs={"class": "form-control", "step": "0.5", "min": "0", "max": "5"}
-        ),
-        label="Оценка",
-    )
-    text = forms.CharField(
-        widget=forms.Textarea(
-            attrs={
-                "class": "form-control",
-                "rows": 4,
-                "placeholder": "Поделитесь впечатлениями о пластинке...",
-            }
-        ),
-        label="Комментарий",
-    )
+from django import forms
+from .models import *
 
+
+class GenreForm(forms.ModelForm):
     class Meta:
-        model = Review
-        fields = ("rating", "text")
-
-
-class ShippingAddressForm(forms.ModelForm):
-    class Meta:
-        model = ShippingAddress
-        fields = ("full_name", "phone", "city", "address_line", "postal_code")
+        model = Genre
+        fields = ("genre_name", "description")
         widgets = {
-            "full_name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Иванов Иван Иванович"}
-            ),
-            "phone": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "+7 (999) 999-99-99"}
-            ),
-            "city": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Москва"}
-            ),
-            "address_line": forms.TextInput(
+            "genre_name": forms.Select(attrs={"class": "form-select"}),
+            "description": forms.Textarea(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "ул. Примерная, д. 1, кв. 1",
+                    "rows": 3,
+                    "placeholder": "Описание жанра...",
                 }
             ),
-            "postal_code": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "123456"}
-            ),
-        }
-        labels = {
-            "full_name": "ФИО",
-            "phone": "Телефон",
-            "city": "Город",
-            "address_line": "Адрес",
-            "postal_code": "Почтовый индекс",
-        }
-
-
-class CouponForm(forms.ModelForm):
-    class Meta:
-        model = Coupon
-        fields = ("code", "discount_percent", "active", "valid_from", "valid_to")
-        widgets = {
-            "code": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Введите промокод"}
-            ),
-            "discount_percent": forms.NumberInput(
-                attrs={"class": "form-control", "min": "0", "max": "100", "step": "1"}
-            ),
-            "active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "valid_from": forms.DateTimeInput(
-                attrs={"class": "form-control", "type": "datetime-local"}
-            ),
-            "valid_to": forms.DateTimeInput(
-                attrs={"class": "form-control", "type": "datetime-local"}
-            ),
-        }
-        labels = {
-            "code": "Промокод",
-            "discount_percent": "Процент скидки",
-            "active": "Активен",
-            "valid_from": "Действует с",
-            "valid_to": "Действует до",
         }
 
 
@@ -165,30 +99,6 @@ class ArtistForm(forms.ModelForm):
             "country": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Введите страну"}
             ),
-        }
-        labels = {
-            "artist_name": "Исполнитель",
-            "country": "Страна",
-        }
-
-
-class GenreForm(forms.ModelForm):
-    class Meta:
-        model = Genre
-        fields = ("genre_name", "description")
-        widgets = {
-            "genre_name": forms.Select(attrs={"class": "form-select"}),
-            "description": forms.Textarea(
-                attrs={
-                    "class": "form-control",
-                    "rows": 3,
-                    "placeholder": "Описание жанра...",
-                }
-            ),
-        }
-        labels = {
-            "genre_name": "Жанр",
-            "description": "Описание",
         }
 
 
@@ -228,57 +138,118 @@ class ProductForm(forms.ModelForm):
             "genre": forms.Select(attrs={"class": "form-select"}),
             "artist": forms.Select(attrs={"class": "form-select"}),
         }
-        labels = {
-            "product_name": "Название продукта",
-            "description": "Описание",
-            "price": "Цена",
-            "stock_quantity": "Количество на складе",
-            "picture": "Изображение",
-            "genre": "Жанр",
-            "artist": "Исполнитель",
-        }
 
 
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ("status", "shipping_address", "coupon")
+        fields = ("user", "status", "shipping_address", "coupon")
         widgets = {
+            "user": forms.Select(attrs={"class": "form-select"}),
             "status": forms.Select(attrs={"class": "form-select"}),
             "shipping_address": forms.Select(attrs={"class": "form-select"}),
             "coupon": forms.Select(attrs={"class": "form-select"}),
-        }
-        labels = {
-            "status": "Статус заказа",
-            "shipping_address": "Адрес доставки",
-            "coupon": "Промокод",
         }
 
 
 class OrderItemForm(forms.ModelForm):
     class Meta:
         model = OrderItem
-        fields = ("product", "quantity")
+        fields = ("order", "product", "quantity")
         widgets = {
+            "order": forms.Select(attrs={"class": "form-select"}),
             "product": forms.Select(attrs={"class": "form-select"}),
             "quantity": forms.NumberInput(
                 attrs={"class": "form-control", "min": "1", "value": "1"}
             ),
         }
-        labels = {
-            "product": "Товар",
-            "quantity": "Количество",
+
+
+class AdminReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ("user", "product", "rating", "text")
+        widgets = {
+            "user": forms.Select(attrs={"class": "form-select"}),
+            "product": forms.Select(attrs={"class": "form-select"}),
+            "rating": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.5", "min": "0", "max": "5"}
+            ),
+            "text": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": "Текст отзыва...",
+                }
+            ),
         }
 
 
-class SearchForm(forms.Form):
-    query = forms.CharField(
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ("rating", "text")
+        widgets = {
+            "rating": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.5", "min": "0", "max": "5"}
+            ),
+            "text": forms.Textarea(
+                attrs={"class": "form-control", "rows": 4, "placeholder": "Поделитесь впечатлениями..."}
+            ),
+        }
+
+
+class ShippingAddressForm(forms.ModelForm):
+    class Meta:
+        model = ShippingAddress
+        fields = ("user", "full_name", "phone", "city", "address_line", "postal_code")
+        widgets = {
+            "user": forms.Select(attrs={"class": "form-select"}),
+            "full_name": forms.TextInput(attrs={"class": "form-control"}),
+            "phone": forms.TextInput(attrs={"class": "form-control"}),
+            "city": forms.TextInput(attrs={"class": "form-control"}),
+            "address_line": forms.TextInput(attrs={"class": "form-control"}),
+            "postal_code": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+
+class CouponForm(forms.ModelForm):
+    class Meta:
+        model = Coupon
+        fields = ("code", "discount_percent", "active", "valid_from", "valid_to")
+        widgets = {
+            "code": forms.TextInput(attrs={"class": "form-control"}),
+            "discount_percent": forms.NumberInput(
+                attrs={"class": "form-control", "min": "0", "max": "100"}
+            ),
+            "active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "valid_from": forms.DateTimeInput(
+                attrs={"class": "form-control", "type": "datetime-local"}
+            ),
+            "valid_to": forms.DateTimeInput(
+                attrs={"class": "form-control", "type": "datetime-local"}
+            ),
+        }
+
+
+class CheckoutAddressForm(forms.ModelForm):
+    class Meta:
+        model = ShippingAddress
+        fields = ("full_name", "phone", "city", "address_line", "postal_code")
+        widgets = {
+            "full_name": forms.TextInput(attrs={"class": "form-control"}),
+            "phone": forms.TextInput(attrs={"class": "form-control"}),
+            "city": forms.TextInput(attrs={"class": "form-control"}),
+            "address_line": forms.TextInput(attrs={"class": "form-control"}),
+            "postal_code": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+
+class ApplyCouponForm(forms.Form):
+    code = forms.CharField(
         required=False,
+        label="Промокод",
         widget=forms.TextInput(
-            attrs={
-                "class": "form-control",
-                "placeholder": "Поиск по товарам...",
-                "aria-label": "Search",
-            }
+            attrs={"class": "form-control", "placeholder": "Введите промокод"}
         ),
     )

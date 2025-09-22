@@ -17,7 +17,6 @@
 			<div class="form-group {% if form.username.errors %}error{% endif %}">
 				<div class="input-wrapper">
 					{{ form.username }}
-					<label for="id_username">Email или имя пользователя</label>
 				</div>
 				{% if form.username.errors %}
 				<span class="error-message show"> {{ form.username.errors.0 }} </span>
@@ -27,7 +26,6 @@
 			<div class="form-group {% if form.password.errors %}error{% endif %}">
 				<div class="input-wrapper">
 					{{ form.password }}
-					<label for="id_password">Пароль</label>
 					<button type="button" class="password-toggle" id="passwordToggle">
 						<span class="toggle-icon"></span>
 					</button>

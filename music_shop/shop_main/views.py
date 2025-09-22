@@ -9,11 +9,24 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, TemplateView, View
 from django.contrib.auth.models import User, Group
-from .forms import SignUpForm, LoginForm, ReviewForm, ShippingAddressForm, CouponForm
+from .forms import (
+    SignUpForm,
+    LoginForm,
+    ReviewForm,
+    CheckoutAddressForm,
+    ApplyCouponForm,
+    ArtistForm,
+    ProductForm,
+    OrderForm,
+    OrderItemForm,
+    AdminReviewForm,
+    ShippingAddressForm,
+    CouponForm,
+)
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login, authenticate, logout
 from django.db.models import Q
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import Http404
@@ -26,11 +39,9 @@ from .models import (
     OrderItem,
     Order,
     Review,
+    ShippingAddress,
+    Coupon,
 )
-
-
-def check(request):
-    return render(request, "main.html")
 
 
 class GenreList(ListView):
@@ -162,7 +173,7 @@ class AccountView(LoginRequiredMixin, TemplateView):
         is_admin = user.is_superuser or user.is_staff or ("Admin" in group_names)
         context["group_names"] = group_names
         context["role_label"] = "Администратор" if is_admin else "Пользователь"
-        # Orders with items
+
         orders = (
             Order.objects.filter(user=user)
             .prefetch_related("orderitem_set__product")
@@ -184,7 +195,6 @@ class AccountView(LoginRequiredMixin, TemplateView):
                     }
                 )
             if o.coupon and o.coupon.active:
-                # Apply coupon discount to total for display in account
                 percent = o.coupon.discount_percent or 0
                 total = total * (1.0 - float(percent) / 100.0)
             orders_data.append(
@@ -308,14 +318,13 @@ class CartView(LoginRequiredMixin, TemplateView):
                     "address_line": last_addr.address_line,
                     "postal_code": last_addr.postal_code,
                 }
-        context["address_form"] = ShippingAddressForm(initial=initial_address)
-        context["coupon_form"] = CouponForm()
+        context["address_form"] = CheckoutAddressForm(initial=initial_address)
+        context["coupon_form"] = ApplyCouponForm()
         return context
 
     def post(self, request, *args, **kwargs):
         action = request.POST.get("action")
         item_id = request.POST.get("item_id")
-        # manipulate cookie cart
         try:
             cart = json.loads(request.COOKIES.get("cart", "{}"))
         except json.JSONDecodeError:
@@ -341,8 +350,8 @@ class CartView(LoginRequiredMixin, TemplateView):
             if not cart:
                 return redirect("cart")
 
-            address_form = ShippingAddressForm(request.POST)
-            coupon_form = CouponForm(request.POST)
+            address_form = CheckoutAddressForm(request.POST)
+            coupon_form = ApplyCouponForm(request.POST)
 
             coupon_obj = None
             if coupon_form.is_valid():
@@ -449,33 +458,350 @@ class AdminOverviewView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         return context
 
 
-class GenreListView(ListView):
+class GenreListView(PermissionRequiredMixin, ListView):
+    permission_required = "shop_main.view_genre"
     model = Genre
-    template_name = "product_detail.html"
-    context_object_name = "genres"
+    template_name = "genre/list.html"
+    context_object_name = "records"
 
 
-class GenreDetailView(DetailView):
+class GenreDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = "shop_main.view_genre"
     model = Genre
-    template_name = "product_detail.html"
-    context_object_name = "genre"
+    template_name = "genre/detail.html"
+    context_object_name = "object"
 
 
-class GenreCreateView(LoginRequiredMixin, CreateView):
+class GenreCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "shop_main.add_genre"
     model = Genre
-    template_name = "genre_form.html"
+    template_name = "genre/form.html"
     fields = ["genre_name", "description"]
     success_url = reverse_lazy("genre-list")
 
 
-class GenreUpdateView(LoginRequiredMixin, UpdateView):
+class GenreUpdateView(PermissionRequiredMixin, UpdateView):
+    permission_required = "shop_main.change_genre"
     model = Genre
-    template_name = "genre_form.html"
+    template_name = "genre/form.html"
     fields = ["genre_name", "description"]
     success_url = reverse_lazy("genre-list")
 
 
-class GenreDeleteView(LoginRequiredMixin, DeleteView):
+class GenreDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = "shop_main.delete_genre"
     model = Genre
-    template_name = "genre_confirm_delete.html"
+    template_name = "genre/confirm_delete.html"
     success_url = reverse_lazy("genre-list")
+
+
+# Artist Views
+class ArtistListView(PermissionRequiredMixin, ListView):
+    permission_required = "shop_main.view_artist"
+    model = Artist
+    template_name = "artist/list.html"
+    context_object_name = "records"
+
+
+class ArtistDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = "shop_main.view_artist"
+    model = Artist
+    template_name = "artist/detail.html"
+    context_object_name = "object"
+
+
+class ArtistCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "shop_main.add_artist"
+    model = Artist
+    form_class = ArtistForm
+    template_name = "artist/form.html"
+    success_url = reverse_lazy("artist-list")
+
+
+class ArtistUpdateView(PermissionRequiredMixin, UpdateView):
+    permission_required = "shop_main.change_artist"
+    model = Artist
+    form_class = ArtistForm
+    template_name = "artist/form.html"
+    success_url = reverse_lazy("artist-list")
+
+
+class ArtistDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = "shop_main.delete_artist"
+    model = Artist
+    template_name = "artist/confirm_delete.html"
+    success_url = reverse_lazy("artist-list")
+
+
+# Product Views
+class ProductListView(PermissionRequiredMixin, ListView):
+    permission_required = "shop_main.view_product"
+    model = Product
+    template_name = "product/list.html"
+    context_object_name = "records"
+
+
+class ProductDetailCrudView(PermissionRequiredMixin, DetailView):
+    permission_required = "shop_main.view_product"
+    model = Product
+    template_name = "product/detail.html"
+    context_object_name = "object"
+
+
+class ProductCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "shop_main.add_product"
+    model = Product
+    form_class = ProductForm
+    template_name = "product/form.html"
+    success_url = reverse_lazy("product-list")
+
+
+class ProductUpdateView(PermissionRequiredMixin, UpdateView):
+    permission_required = "shop_main.change_product"
+    model = Product
+    form_class = ProductForm
+    template_name = "product/form.html"
+    success_url = reverse_lazy("product-list")
+
+
+class ProductDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = "shop_main.delete_product"
+    model = Product
+    template_name = "product/confirm_delete.html"
+    success_url = reverse_lazy("product-list")
+
+
+# Order Views
+class OrderListView(PermissionRequiredMixin, ListView):
+    permission_required = "shop_main.view_order"
+    model = Order
+    template_name = "order/list.html"
+    context_object_name = "records"
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Order.objects.select_related(
+                "user", "shipping_address", "coupon"
+            ).all()
+        return Order.objects.filter(user=self.request.user).select_related(
+            "shipping_address", "coupon"
+        )
+
+
+class OrderDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = "shop_main.view_order"
+    model = Order
+    template_name = "order/detail.html"
+    context_object_name = "object"
+
+
+class OrderCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "shop_main.add_order"
+    model = Order
+    form_class = OrderForm
+    template_name = "order/form.html"
+    success_url = reverse_lazy("order-list")
+
+
+class OrderUpdateView(PermissionRequiredMixin, UpdateView):
+    permission_required = "shop_main.change_order"
+    model = Order
+    form_class = OrderForm
+    template_name = "order/form.html"
+    success_url = reverse_lazy("order-list")
+
+
+class OrderDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = "shop_main.delete_order"
+    model = Order
+    template_name = "order/confirm_delete.html"
+    success_url = reverse_lazy("order-list")
+
+
+# OrderItem Views
+class OrderItemListView(PermissionRequiredMixin, ListView):
+    permission_required = "shop_main.view_orderitem"
+    model = OrderItem
+    template_name = "orderitem/list.html"
+    context_object_name = "records"
+
+
+class OrderItemDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = "shop_main.view_orderitem"
+    model = OrderItem
+    template_name = "orderitem/detail.html"
+    context_object_name = "object"
+
+
+class OrderItemCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "shop_main.add_orderitem"
+    model = OrderItem
+    form_class = OrderItemForm
+    template_name = "orderitem/form.html"
+    success_url = reverse_lazy("orderitem-list")
+
+
+class OrderItemUpdateView(PermissionRequiredMixin, UpdateView):
+    permission_required = "shop_main.change_orderitem"
+    model = OrderItem
+    form_class = OrderItemForm
+    template_name = "orderitem/form.html"
+    success_url = reverse_lazy("orderitem-list")
+
+
+class OrderItemDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = "shop_main.delete_orderitem"
+    model = OrderItem
+    template_name = "orderitem/confirm_delete.html"
+    success_url = reverse_lazy("orderitem-list")
+
+
+# Review Views
+class ReviewListView(PermissionRequiredMixin, ListView):
+    permission_required = "shop_main.view_review"
+    model = Review
+    template_name = "review/list.html"
+    context_object_name = "records"
+
+
+class ReviewDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = "shop_main.view_review"
+    model = Review
+    template_name = "review/detail.html"
+    context_object_name = "object"
+
+
+class ReviewCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "shop_main.add_review"
+    model = Review
+    form_class = AdminReviewForm
+    template_name = "review/form.html"
+    success_url = reverse_lazy("review-list")
+
+
+class ReviewUpdateView(PermissionRequiredMixin, UpdateView):
+    permission_required = "shop_main.change_review"
+    model = Review
+    form_class = AdminReviewForm
+    template_name = "review/form.html"
+    success_url = reverse_lazy("review-list")
+
+
+class ReviewDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = "shop_main.delete_review"
+    model = Review
+    template_name = "review/confirm_delete.html"
+    success_url = reverse_lazy("review-list")
+
+
+# ShippingAddress Views
+class ShippingAddressListView(PermissionRequiredMixin, ListView):
+    permission_required = "shop_main.view_shippingaddress"
+    model = ShippingAddress
+    template_name = "shippingaddress/list.html"
+    context_object_name = "records"
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return ShippingAddress.objects.select_related("user").all()
+        return ShippingAddress.objects.filter(user=self.request.user)
+
+
+class ShippingAddressDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = "shop_main.view_shippingaddress"
+    model = ShippingAddress
+    template_name = "shippingaddress/detail.html"
+    context_object_name = "object"
+
+
+class ShippingAddressCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "shop_main.add_shippingaddress"
+    model = ShippingAddress
+    form_class = ShippingAddressForm
+    template_name = "shippingaddress/form.html"
+    success_url = reverse_lazy("shippingaddress-list")
+
+
+class ShippingAddressUpdateView(PermissionRequiredMixin, UpdateView):
+    permission_required = "shop_main.change_shippingaddress"
+    model = ShippingAddress
+    form_class = ShippingAddressForm
+    template_name = "shippingaddress/form.html"
+    success_url = reverse_lazy("shippingaddress-list")
+
+
+class ShippingAddressDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = "shop_main.delete_shippingaddress"
+    model = ShippingAddress
+    template_name = "shippingaddress/confirm_delete.html"
+    success_url = reverse_lazy("shippingaddress-list")
+
+
+# Coupon Views
+class CouponListView(PermissionRequiredMixin, ListView):
+    permission_required = "shop_main.view_coupon"
+    model = Coupon
+    template_name = "coupon/list.html"
+    context_object_name = "records"
+
+
+class CouponDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = "shop_main.view_coupon"
+    model = Coupon
+    template_name = "coupon/detail.html"
+    context_object_name = "object"
+
+
+class CouponCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "shop_main.add_coupon"
+    model = Coupon
+    form_class = CouponForm
+    template_name = "coupon/form.html"
+    success_url = reverse_lazy("coupon-list")
+
+
+class CouponUpdateView(PermissionRequiredMixin, UpdateView):
+    permission_required = "shop_main.change_coupon"
+    model = Coupon
+    form_class = CouponForm
+    template_name = "coupon/form.html"
+    success_url = reverse_lazy("coupon-list")
+
+
+class CouponDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = "shop_main.delete_coupon"
+    model = Coupon
+    template_name = "coupon/confirm_delete.html"
+    success_url = reverse_lazy("coupon-list")
+
+
+# Database Overview
+class DatabaseOverviewView(PermissionRequiredMixin, TemplateView):
+    permission_required = "shop_main.view_genre"  # Любое право просмотра
+    template_name = "db/index.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["tables"] = [
+            {"name": "Жанры", "count": Genre.objects.count(), "url": "genre-list"},
+            {
+                "name": "Исполнители",
+                "count": Artist.objects.count(),
+                "url": "artist-list",
+            },
+            {"name": "Товары", "count": Product.objects.count(), "url": "product-list"},
+            {"name": "Заказы", "count": Order.objects.count(), "url": "order-list"},
+            {
+                "name": "Позиции заказа",
+                "count": OrderItem.objects.count(),
+                "url": "orderitem-list",
+            },
+            {"name": "Отзывы", "count": Review.objects.count(), "url": "review-list"},
+            {
+                "name": "Адреса доставки",
+                "count": ShippingAddress.objects.count(),
+                "url": "shippingaddress-list",
+            },
+            {"name": "Купоны", "count": Coupon.objects.count(), "url": "coupon-list"},
+        ]
+        return ctx
